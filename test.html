@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>روبات شرکت مشاور سرمایه‌گذاری کاریزما - محیط تست</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Mock Telegram WebApp for testing -->
+    <script>
+      window.Telegram = {
+        WebApp: {
+          initData: "",
+          initDataUnsafe: {
+            user: {
+              id: 123456789,
+              first_name: "کاربر",
+              last_name: "تست",
+              username: "testuser",
+              language_code: "fa"
+            }
+          },
+          themeParams: {
+            bg_color: "#ffffff",
+            text_color: "#222222",
+            hint_color: "#999999",
+            link_color: "#2481cc",
+            button_color: "#2aabee",
+            button_text_color: "#ffffff"
+          },
+          expand: function() {
+            console.log("WebApp expanded");
+          },
+          close: function() {
+            console.log("WebApp closed");
+          },
+          MainButton: {
+            text: "",
+            setText: function(text) {
+              this.text = text;
+              console.log("Main Button text set to:", text);
+            },
+            onClick: function(callback) {
+              this._callback = callback;
+              console.log("Main Button click handler set");
+            },
+            show: function() {
+              console.log("Main Button shown");
+            },
+            hide: function() {
+              console.log("Main Button hidden");
+            },
+            triggerClick: function() {
+              if (this._callback) this._callback();
+            }
+          },
+          sendData: function(data) {
+            console.log("Data sent to Telegram:", data);
+          }
+        }
+      };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <img src="images/logo.png" alt="لوگوی کاریزما" class="logo">
+        </div>
+        
+        <h1>روبات شرکت مشاور سرمایه‌گذاری کاریزما (محیط تست)</h1>
+        <div id="app">
+            <div class="card">
+                <p>به روبات شرکت مشاور سرمایه‌گذاری کاریزما خوش آمدید! (محیط تست)</p>
+                <button id="mainButton" class="button">دکمه اصلی</button>
+                <button id="colorThemeButton" class="button secondary">دریافت تم رنگی</button>
+                <button id="userDataButton" class="button accent">دریافت اطلاعات کاربر</button>
+                <hr style="margin: 20px 0">
+                <button onclick="window.Telegram.WebApp.MainButton.triggerClick()" class="button">
+                    شبیه‌سازی کلیک دکمه اصلی در تلگرام
+                </button>
+            </div>
+            <div id="result" class="result"></div>
+        </div>
+        <div style="margin-top: 20px; text-align: center;">
+            <p>این یک محیط تست با شبیه‌سازی SDK تلگرام است.</p>
+            <p>برای اطلاعات بیشتر، کنسول مرورگر را بررسی کنید.</p>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html> 

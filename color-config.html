@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تنظیم رنگ‌های برند کاریزما</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .color-config {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .config-row {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .config-label {
+            width: 150px;
+            margin-left: 15px;
+            font-weight: bold;
+        }
+        
+        .color-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            margin-left: 15px;
+            border: 1px solid #ddd;
+        }
+        
+        .preview-section {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        #exportCSS {
+            margin-top: 20px;
+            background-color: var(--brand-dark);
+        }
+        
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-top: 15px;
+            direction: ltr;
+            text-align: left;
+            padding: 10px;
+            font-family: monospace;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <img src="images/logo.png" alt="لوگوی کاریزما" class="logo">
+        </div>
+        
+        <h1>تنظیم رنگ‌های برند کاریزما</h1>
+        
+        <div class="card">
+            <p>از این ابزار برای تنظیم رنگ‌های برند خود متناسب با لوگو استفاده کنید.</p>
+            
+            <div class="color-config">
+                <div class="config-row">
+                    <div class="config-label">رنگ اصلی برند</div>
+                    <div class="color-preview" id="primaryPreview"></div>
+                    <input type="color" id="primaryColor" value="#D32127">
+                </div>
+                
+                <div class="config-row">
+                    <div class="config-label">رنگ ثانویه برند</div>
+                    <div class="color-preview" id="secondaryPreview"></div>
+                    <input type="color" id="secondaryColor" value="#0D3148">
+                </div>
+                
+                <div class="config-row">
+                    <div class="config-label">رنگ تأکیدی</div>
+                    <div class="color-preview" id="accentPreview"></div>
+                    <input type="color" id="accentColor" value="#F8C75B">
+                </div>
+                
+                <div class="config-row">
+                    <div class="config-label">رنگ تیره</div>
+                    <div class="color-preview" id="darkPreview"></div>
+                    <input type="color" id="darkColor" value="#0A2538">
+                </div>
+                
+                <div class="config-row">
+                    <div class="config-label">رنگ روشن پس‌زمینه</div>
+                    <div class="color-preview" id="lightPreview"></div>
+                    <input type="color" id="lightColor" value="#F9F9F9">
+                </div>
+                
+                <div class="config-row">
+                    <div class="config-label">رنگ متن</div>
+                    <div class="color-preview" id="textPreview"></div>
+                    <input type="color" id="textColor" value="#0D3148">
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <h2>پیش‌نمایش</h2>
+            <button class="button" id="previewButton">دکمه اصلی</button>
+            <button class="button secondary" id="previewSecondary">دکمه ثانویه</button>
+            <button class="button accent" id="previewAccent">دکمه تأکیدی</button>
+            
+            <div class="result" style="margin-top: 20px;">
+                این یک نمونه متن است که با رنگ‌های انتخاب شده نمایش داده می‌شود.
+            </div>
+        </div>
+        
+        <button id="exportCSS" class="button">دریافت کد CSS</button>
+        <textarea id="cssOutput" readonly></textarea>
+        
+        <div class="card" style="margin-top: 20px;">
+            <a href="index.html" class="button">بازگشت به صفحه اصلی</a>
+        </div>
+    </div>
+    
+    <script>
+        const colorInputs = {
+            primary: document.getElementById('primaryColor'),
+            secondary: document.getElementById('secondaryColor'),
+            accent: document.getElementById('accentColor'),
+            dark: document.getElementById('darkColor'),
+            light: document.getElementById('lightColor'),
+            text: document.getElementById('textColor')
+        };
+        
+        const previews = {
+            primary: document.getElementById('primaryPreview'),
+            secondary: document.getElementById('secondaryPreview'),
+            accent: document.getElementById('accentPreview'),
+            dark: document.getElementById('darkPreview'),
+            light: document.getElementById('lightPreview'),
+            text: document.getElementById('textPreview')
+        };
+        
+        const previewButtons = {
+            primary: document.getElementById('previewButton'),
+            secondary: document.getElementById('previewSecondary'),
+            accent: document.getElementById('previewAccent')
+        };
+        
+        // Initialize color previews
+        for (const key in colorInputs) {
+            previews[key].style.backgroundColor = colorInputs[key].value;
+            
+            colorInputs[key].addEventListener('input', function() {
+                previews[key].style.backgroundColor = this.value;
+                updatePreview();
+            });
+        }
+        
+        function updatePreview() {
+            document.body.style.backgroundColor = colorInputs.light.value;
+            document.body.style.color = colorInputs.text.value;
+            
+            previewButtons.primary.style.backgroundColor = colorInputs.primary.value;
+            previewButtons.secondary.style.backgroundColor = colorInputs.secondary.value;
+            previewButtons.accent.style.backgroundColor = colorInputs.accent.value;
+            
+            if (isLightColor(colorInputs.accent.value)) {
+                previewButtons.accent.style.color = colorInputs.dark.value;
+            } else {
+                previewButtons.accent.style.color = '#ffffff';
+            }
+        }
+        
+        function isLightColor(color) {
+            const hex = color.replace('#', '');
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            const brightness = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+            return brightness > 155;
+        }
+        
+        document.getElementById('exportCSS').addEventListener('click', function() {
+            const cssTemplate = `/* Brand Colors */
+:root {
+    --brand-primary: ${colorInputs.primary.value};
+    --brand-secondary: ${colorInputs.secondary.value};
+    --brand-accent: ${colorInputs.accent.value};
+    --brand-dark: ${colorInputs.dark.value};
+    --brand-light: ${colorInputs.light.value};
+    --brand-text: ${colorInputs.text.value};
+    --brand-shadow: rgba(0, 0, 0, 0.1);
+}`;
+            
+            document.getElementById('cssOutput').value = cssTemplate;
+        });
+        
+        // Initial preview update
+        updatePreview();
+    </script>
+</body>
+</html> 
