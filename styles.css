@@ -67,8 +67,8 @@
 }
 
 body {
-    background-color: var(--tg-theme-bg-color, var(--brand-light));
-    color: var(--tg-theme-text-color, var(--brand-text));
+    background-color: var(--brand-light);
+    color: var(--brand-text);
     min-height: 100vh;
     padding: 20px;
     direction: rtl;
@@ -97,14 +97,14 @@ body {
 h1 {
     text-align: center;
     margin-bottom: 20px;
-    color: var(--tg-theme-button-color, var(--brand-secondary));
+    color: var(--brand-secondary);
     font-family: 'Charisma', 'Tahoma', sans-serif;
     font-weight: 900;
     font-size: 1.5rem;
 }
 
 .card {
-    background-color: var(--tg-theme-secondary-bg-color, var(--brand-card-bg));
+    background-color: var(--brand-card-bg);
     border-radius: 10px;
     padding: 15px;
     margin-bottom: 20px;
@@ -119,8 +119,8 @@ h1 {
     margin: 10px 0;
     border: none;
     border-radius: 8px;
-    background-color: var(--tg-theme-button-color, var(--brand-primary));
-    color: var(--tg-theme-button-text-color, white);
+    background-color: var(--brand-primary);
+    color: white;
     cursor: pointer;
     font-size: 16px;
     font-weight: 500;
@@ -144,7 +144,7 @@ h1 {
 }
 
 .result {
-    background-color: var(--tg-theme-secondary-bg-color, var(--brand-card-bg));
+    background-color: var(--brand-card-bg);
     padding: 15px;
     border-radius: 10px;
     margin-top: 20px;
