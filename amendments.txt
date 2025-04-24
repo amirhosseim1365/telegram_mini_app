@@ -1,0 +1,11 @@
+i need some changes in the files:
+1- in any connection to the api, there must be an api_key sent with value of fuglvrROvYI0sxieqrqnJmzL3n9ZL1P5 
+2- the connection must not be encrypted as https
+3- whenever someone opens the app, the application must call  post request@http://185.255.88.105:88/user_by_telegram_id with json containing {'api_key':'fuglvrROvYI0sxieqrqnJmzL3n9ZL1P5' ,'telegram_id':'telegram_id','authority':1,'check_telegram_id':'34905150'}
+4- if the return of previous api call is {message:failed} then it must create a new json: {'api_key':'fuglvrROvYI0sxieqrqnJmzL3n9ZL1P5','authority':0,'views':0,'rasmio_date':0,'rasmio_count':0,'rasmio_count_total':40,'telegram_id':telegram id of user,'f_name':first name of user,'last_name':last name of user,'telegram_username': telegram username of user} and send it to @http://185.255.88.105:88/add_user  through a post request. if any of first_name, last_name or user_name in the user is null, it must not be included in the json.
+5- then it must  call @http://185.255.88.105:88/add_view function of the api using a json file {'api_key':'fuglvrROvYI0sxieqrqnJmzL3n9ZL1P5','telegram_id':telegram id of the user,'authority'=0,add_view_telegram_id='34905150'}
+6- there must be one line before به روبات شرکت مشاور سرمایه‌گذاری کاریزما خوش آمدید! containing *{f_name} {l_name}* عزیز with f_name and l_name coming from the json returned by add_view api call
+7- there must be a variable called authority which will be equal authority in the json returned by add_view api call
+8- if authority is 0: buttons on the page will be only اوراق بدهی، اوراق آخرین وضعیت بازارها.
+if authority>0 and authority<4 buttons on the page will be مشاور سرمایه‌گذاری کاریزما، اوراق بدهی، آخرین وضعیت بازارها
+if authority=4 the buttons will be  مشاور سرمایه‌گذاری کاریزما، اوراق بدهی، آخرین وضعیت بازارها، مدیریت کاربران

@@ -25,6 +25,23 @@
         .button {
             background-color: #D32127 !important;
             color: white !important;
+            display: none; /* Initially hide all buttons */
+        }
+        
+        /* Loading animation styles */
+        .loading-container {
+            text-align: center;
+            padding: 30px 0;
+        }
+        .hourglass {
+            font-size: 50px;
+            margin-bottom: 15px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
@@ -37,14 +54,16 @@
         <h1 style="color: #0D3148 !important; font-size: 1.25rem;">روبات شرکت مشاور سرمایه‌گذاری کاریزما</h1>
         <div id="app">
             <div class="card">
-                <p>به روبات شرکت <strong>مشاور سرمایه‌گذاری کاریزما</strong> خوش آمدید!</p>
+                <div id="result" class="result">
+                    <!-- Initial loading state will be inserted here by JavaScript -->
+                </div>
                 <button id="mainButton" class="button" style="background-color: #D32127 !important; color: white !important;">دکمه اصلی</button>
+                <button id="userDataButton" class="button" style="background-color: #D32127 !important; color: white !important;">آزمایش با شناسه تلگرام مشخص</button>
                 <button id="colorThemeButton" class="button secondary" style="background-color: #D32127 !important; color: white !important;">دریافت تم رنگی</button>
-                <button id="userDataButton" class="button accent" style="background-color: #D32127 !important; color: white !important;">دریافت اطلاعات کاربر</button>
             </div>
-            <div id="result" class="result"></div>
         </div>
     </div>
+    
     <script src="app.js"></script>
 </body>
 </html> 
