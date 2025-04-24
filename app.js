@@ -168,78 +168,69 @@ async function startApp() {
             return;
         }
         
-        // Use a try-catch block for the API calls
-        try {
-            // Get user data with explicit debugging
-            console.log("Fetching user data for:", user.id);
-            const userData = await userByTelegramId(user.id);
-            console.log("Complete user data object:", userData);
+        // Get user data from API
+        console.log("Checking if user exists:", user.id);
+        let userData = await userByTelegramId(user.id);
+        console.log("User data response:", userData);
+        
+        // Handle user creation if needed
+        if (userData.message !== 'successful') {
+            console.log("Creating new user");
+            const newUserData = {
+                api_key: API_KEY,
+                authority: 0,
+                views: 0,
+                rasmio_date: 0,
+                rasmio_count: 0,
+                rasmio_count_total: 40,
+                telegram_id: user.id
+            };
             
-            // Check for success
-            if (userData.message !== 'successful') {
-                console.log("User not found or API error, creating new user");
-                // Create new user with basic information
-                const newUserData = {
-                    api_key: API_KEY,
-                    authority: 0,
-                    views: 0,
-                    rasmio_date: 0,
-                    rasmio_count: 0,
-                    rasmio_count_total: 40,
-                    telegram_id: user.id
-                };
-                
-                // Add user name data if available
-                if (user.first_name) newUserData.f_name = user.first_name;
-                if (user.last_name) newUserData.l_name = user.last_name;
-                if (user.username) newUserData.telegram_username = user.username;
-                
-                console.log("Adding new user with data:", newUserData);
-                const addResult = await addUser(newUserData);
-                console.log("Add user result:", addResult);
-                
-                // Use the new user data
-                userAuthority = 0;
-            } else {
-                // Use the retrieved user data
-                console.log("User found, setting authority level");
-                
-                // Force authority to be a number
-                userAuthority = Number(userData.authority);
-                console.log("Authority set to:", userAuthority, "type:", typeof userAuthority);
-                
-                // Add view count silently
-                try {
-                    await addView(user.id);
-                } catch (viewError) {
-                    console.error("View counting error (non-critical):", viewError);
-                }
-                
-                // Create welcome message with the user's name
-                let welcomeMessage = '';
-                if (userData.f_name && userData.l_name) {
-                    welcomeMessage = `*${userData.f_name} ${userData.l_name}* عزیز\nبه روبات شرکت مشاور سرمایه‌گذاری کاریزما خوش آمدید!`;
-                    console.log("Using personalized welcome with names:", userData.f_name, userData.l_name);
-                } else {
-                    welcomeMessage = 'کاربر عزیز\nبه روبات شرکت مشاور سرمایه‌گذاری کاریزما خوش آمدید!';
-                    console.log("Using generic welcome message");
-                }
-                
-                // Show the welcome message and menu
-                console.log("Final welcome message:", welcomeMessage);
-                displayResult(welcomeMessage);
-                displayMainMenu();
-                showButtons();
-            }
-        } catch (apiError) {
-            console.error("API communication error:", apiError);
-            displayResult(`خطا در ارتباط با سرور: ${apiError.message || 'خطای نامشخص'}`);
-            showButtons();
+            if (user.first_name) newUserData.f_name = user.first_name;
+            if (user.last_name) newUserData.l_name = user.last_name;
+            if (user.username) newUserData.telegram_username = user.username;
+            
+            userData = await addUser(newUserData);
+            console.log("New user created:", userData);
         }
-    } catch (generalError) {
-        console.error('General error in startApp:', generalError);
-        displayResult(`خطا در راه‌اندازی برنامه: ${generalError.message || 'خطای نامشخص'}`);
+        
+        // Set user authority (convert to number to ensure proper comparison)
+        userAuthority = Number(userData.authority || 0);
+        console.log("User authority set to:", userAuthority, "type:", typeof userAuthority);
+        
+        // Add view silently
+        try {
+            await addView(user.id);
+        } catch (e) {
+            console.warn("Error adding view (non-critical):", e);
+        }
+        
+        // Prepare welcome message
+        let welcomeMessage = '';
+        try {
+            if (userData.f_name && userData.l_name) {
+                welcomeMessage = `*${userData.f_name} ${userData.l_name}* عزیز\nبه روبات شرکت مشاور سرمایه‌گذاری کاریزما خوش آمدید!`;
+                console.log("Using names:", userData.f_name, userData.l_name);
+            } else {
+                welcomeMessage = 'کاربر عزیز\nبه روبات شرکت مشاور سرمایه‌گذاری کاریزما خوش آمدید!';
+                console.log("Using generic greeting");
+            }
+        } catch (e) {
+            welcomeMessage = 'کاربر عزیز\nبه روبات شرکت مشاور سرمایه‌گذاری کاریزما خوش آمدید!';
+            console.warn("Error creating welcome message:", e);
+        }
+        
+        // Display welcome message and show buttons
+        console.log("Displaying welcome message");
+        displayResult(welcomeMessage);
+        console.log("Showing main menu");
+        displayMainMenu();
         showButtons();
+        
+    } catch (error) {
+        console.error('Error in startApp:', error);
+        displayResult(`خطا در راه‌اندازی برنامه: ${error.message || 'خطای نامشخص'}`);
+        showButtons(); // Show buttons even if there's an error
     }
 }
 
@@ -247,7 +238,7 @@ async function startApp() {
 
 // Check if user exists by Telegram ID
 async function userByTelegramId(telegramId) {
-    return new Promise((resolve, reject) => {
+    try {
         // Create data object to send as JSON
         const data = {
             api_key: API_KEY,
@@ -256,51 +247,47 @@ async function userByTelegramId(telegramId) {
             check_telegram_id: 34905150
         };
         
-        // Direct XMLHttpRequest implementation for maximum control
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', `${API_BASE_URL}/user_by_telegram_id`, true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        
-        xhr.onload = function() {
-            console.log("XHR status:", xhr.status);
-            console.log("Raw response:", xhr.responseText);
+        // Use XMLHttpRequest with a Promise wrapper
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `${API_BASE_URL}/user_by_telegram_id`, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
             
-            if (xhr.status >= 200 && xhr.status < 300) {
-                try {
-                    // Parse JSON response
-                    let userData = JSON.parse(xhr.responseText);
-                    
-                    // Ensure userData is an object
-                    if (typeof userData === 'string') {
-                        userData = JSON.parse(userData); // Double-parse if needed
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        // Parse the response text
+                        const response = JSON.parse(xhr.responseText);
+                        console.log("User data received:", response);
+                        resolve(response);
+                    } catch (e) {
+                        console.error("Error parsing JSON:", e);
+                        resolve({ message: 'failed', error: 'JSON parse error' });
                     }
-                    
-                    console.log("Parsed user data:", userData);
-                    console.log("User data properties:", Object.keys(userData));
-                    console.log("First name:", userData.f_name);
-                    console.log("Last name:", userData.l_name);
-                    console.log("Authority:", userData.authority);
-                    
-                    resolve(userData);
-                } catch (e) {
-                    console.error("JSON parse error:", e);
-                    console.error("Failed response text:", xhr.responseText);
-                    resolve({ message: 'failed', error: 'Invalid JSON response' });
+                } else {
+                    console.error("HTTP error:", xhr.status);
+                    resolve({ message: 'failed', error: xhr.statusText });
                 }
-            } else {
-                console.error("HTTP error:", xhr.status, xhr.statusText);
-                resolve({ message: 'failed', error: xhr.statusText });
-            }
-        };
-        
-        xhr.onerror = function(e) {
-            console.error("Network error:", e);
-            resolve({ message: 'failed', error: 'Network error' });
-        };
-        
-        console.log("Sending request with data:", data);
-        xhr.send(JSON.stringify(data));
-    });
+            };
+            
+            xhr.onerror = function() {
+                console.error("Network error");
+                resolve({ message: 'failed', error: 'Network error' });
+            };
+            
+            xhr.ontimeout = function() {
+                console.error("Request timeout");
+                resolve({ message: 'failed', error: 'Timeout' });
+            };
+            
+            // Send the request
+            console.log("Sending user data request:", data);
+            xhr.send(JSON.stringify(data));
+        });
+    } catch (error) {
+        console.error("Error in userByTelegramId:", error);
+        return { message: 'failed', error: error.message };
+    }
 }
 
 // Add a new user
