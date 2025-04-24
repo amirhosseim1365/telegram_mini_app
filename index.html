@@ -43,6 +43,18 @@
             50% { transform: scale(1.1); opacity: 0.7; }
             100% { transform: scale(1); opacity: 1; }
         }
+        
+        /* Layout styles */
+        .welcome-message {
+            text-align: right;
+            margin-bottom: 20px;
+            direction: rtl;
+        }
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -54,12 +66,15 @@
         <h1 style="color: #0D3148 !important; font-size: 1.25rem;">روبات شرکت مشاور سرمایه‌گذاری کاریزما</h1>
         <div id="app">
             <div class="card">
-                <div id="result" class="result">
+                <!-- Welcome message will appear here -->
+                <div id="result" class="result welcome-message">
                     <!-- Initial loading state will be inserted here by JavaScript -->
                 </div>
-                <button id="mainButton" class="button" style="background-color: #D32127 !important; color: white !important;">دکمه اصلی</button>
-                <button id="userDataButton" class="button" style="background-color: #D32127 !important; color: white !important;">آزمایش با شناسه تلگرام مشخص</button>
-                <button id="colorThemeButton" class="button secondary" style="background-color: #D32127 !important; color: white !important;">دریافت تم رنگی</button>
+                
+                <!-- Menu buttons will be added here by JavaScript -->
+                <div id="menuButtons" class="menu-buttons">
+                    <!-- Buttons will be inserted here -->
+                </div>
             </div>
         </div>
     </div>

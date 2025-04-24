@@ -2,10 +2,8 @@
 const telegram = window.Telegram.WebApp;
 
 // Get DOM elements
-const mainButton = document.getElementById('mainButton');
-const colorThemeButton = document.getElementById('colorThemeButton');
-const userDataButton = document.getElementById('userDataButton');
 const resultDiv = document.getElementById('result');
+const menuButtonsContainer = document.getElementById('menuButtons');
 
 // API configuration
 const API_BASE_URL = "http://185.255.88.105:88";
@@ -111,25 +109,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Hide all buttons initially
     hideAllButtons();
     
-    // Show loading state with sand clock
+    // Show loading state at the beginning
     showLoadingState();
     
     // Start the app flow similar to Python's start function
     startApp();
-    
-    // Set up the main button
-    telegram.MainButton.setText('منوی اصلی');
-    telegram.MainButton.onClick(function() {
-        displayMainMenu();
-    });
 });
 
 // Hide all buttons initially
 function hideAllButtons() {
-    const buttons = document.querySelectorAll('.button');
-    buttons.forEach(button => {
-        button.style.display = 'none';
-    });
+    // Hide all buttons in the menu container
+    menuButtonsContainer.style.display = 'none';
 }
 
 // Show loading state with sand clock
@@ -144,7 +134,11 @@ function showLoadingState() {
 
 // Show all buttons after loading
 function showButtons() {
-    const buttons = document.querySelectorAll('.button');
+    // Show the menu container with all its buttons
+    menuButtonsContainer.style.display = 'block';
+    
+    // Make sure all buttons inside are visible
+    const buttons = menuButtonsContainer.querySelectorAll('.button');
     buttons.forEach(button => {
         button.style.display = 'block';
     });
@@ -396,8 +390,9 @@ function displayResult(text, append = false) {
         const timestamp = new Date().toLocaleTimeString();
         resultDiv.innerHTML += `<hr><div class="timestamp">${timestamp}</div>${text.replace(/\*(.*?)\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}`;
     } else {
-        // Replace existing content
-        resultDiv.innerHTML = text.replace(/\*(.*?)\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+        // Replace existing content with properly formatted text
+        resultDiv.innerHTML = `<div class="welcome-text">${text.replace(/\*(.*?)\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}</div>`;
+        resultDiv.style.marginBottom = '20px'; // Add space between welcome message and buttons
     }
 }
 
@@ -484,42 +479,27 @@ function displayMainMenu() {
     try {
         console.log("Displaying main menu, authority:", userAuthority);
         
-        // Clear existing buttons
-        const buttonContainer = document.querySelector('.card');
-        if (!buttonContainer) {
-            console.error("Button container not found!");
-            return;
-        }
-        
-        const existingButtons = buttonContainer.querySelectorAll('button:not(#mainButton)');
-        existingButtons.forEach(button => button.remove());
+        // Clear existing buttons in the menu container
+        menuButtonsContainer.innerHTML = '';
         
         // Create menu buttons based on authority
         const menuButtons = getMainMenuButtons(userAuthority);
         
-        // Find the result div directly
-        const resultDiv = document.getElementById('result');
-        
-        // Add buttons to the DOM
+        // Add buttons to the menu container
         menuButtons.forEach(buttonInfo => {
             const button = document.createElement('button');
             button.className = 'button';
             button.style.backgroundColor = "#D32127";
             button.style.color = "white";
+            button.style.display = 'block'; // Make sure it's visible
             button.innerText = buttonInfo.text;
             button.setAttribute('data-action', buttonInfo.action);
             button.addEventListener('click', function() {
                 handleMenuAction(buttonInfo.action);
             });
             
-            // Insert the button before the existing main button
-            const mainButton = document.getElementById('mainButton');
-            if (mainButton && mainButton.parentNode) {
-                buttonContainer.insertBefore(button, mainButton);
-            } else {
-                // Fallback: just append to container
-                buttonContainer.appendChild(button);
-            }
+            // Add to the menu buttons container
+            menuButtonsContainer.appendChild(button);
         });
         
         console.log("Main menu displayed successfully");
@@ -608,27 +588,4 @@ function handleMenuAction(action) {
         default:
             displayResult('گزینه نامعتبر');
     }
-}
-
-// Original button event handlers
-mainButton.addEventListener('click', function() {
-    displayMainMenu();
-});
-
-colorThemeButton.addEventListener('click', function() {
-    const colorTheme = {
-        bg_color: telegram.themeParams.bg_color,
-        text_color: telegram.themeParams.text_color,
-        hint_color: telegram.themeParams.hint_color,
-        link_color: telegram.themeParams.link_color,
-        button_color: telegram.themeParams.button_color,
-        button_text_color: telegram.themeParams.button_text_color
-    };
-    
-    displayResult('رنگ‌های تم: ' + JSON.stringify(colorTheme, null, 2));
-});
-
-userDataButton.addEventListener('click', function() {
-    // Use test telegram ID for testing
-    testWithTelegramId();
-}); 
+} 
