@@ -171,7 +171,18 @@ async function startApp() {
         // Get user data from API
         console.log("Checking if user exists:", user.id);
         let userData = await userByTelegramId(user.id);
-        console.log("User data response:", userData);
+        console.log("FINAL USER DATA IN START APP:", userData);
+        
+        // Set properties directly from our manually processed object
+        // This ensures they're available regardless of how the JSON was parsed
+        const firstName = userData.f_name || '';
+        const lastName = userData.l_name || '';
+        const authority = userData.authority;
+        
+        console.log("Final extracted values:");
+        console.log("- firstName:", firstName);
+        console.log("- lastName:", lastName);
+        console.log("- authority:", authority);
         
         // Handle user creation if needed
         if (userData.message !== 'successful') {
@@ -195,8 +206,9 @@ async function startApp() {
         }
         
         // Set user authority (convert to number to ensure proper comparison)
-        userAuthority = Number(userData.authority || 0);
-        console.log("User authority set to:", userAuthority, "type:", typeof userAuthority);
+        // FORCED conversion and assignment - this is critical
+        userAuthority = Number(authority);
+        console.log("FINAL User authority:", userAuthority, "type:", typeof userAuthority);
         
         // Add view silently
         try {
@@ -205,25 +217,24 @@ async function startApp() {
             console.warn("Error adding view (non-critical):", e);
         }
         
+        // Force a specific value if you're testing authority = 4
+        // Uncomment this line ONLY for testing
+        // userAuthority = 4;
+        
         // Prepare welcome message
         let welcomeMessage = '';
-        try {
-            if (userData.f_name && userData.l_name) {
-                welcomeMessage = `*${userData.f_name} ${userData.l_name}* عزیز\nبه روبات شرکت مشاور سرمایه‌گذاری کاریزما خوش آمدید!`;
-                console.log("Using names:", userData.f_name, userData.l_name);
-            } else {
-                welcomeMessage = 'کاربر عزیز\nبه روبات شرکت مشاور سرمایه‌گذاری کاریزما خوش آمدید!';
-                console.log("Using generic greeting");
-            }
-        } catch (e) {
+        if (firstName && lastName) {
+            welcomeMessage = `*${firstName} ${lastName}* عزیز\nبه روبات شرکت مشاور سرمایه‌گذاری کاریزما خوش آمدید!`;
+            console.log("Using names:", firstName, lastName);
+        } else {
             welcomeMessage = 'کاربر عزیز\nبه روبات شرکت مشاور سرمایه‌گذاری کاریزما خوش آمدید!';
-            console.warn("Error creating welcome message:", e);
+            console.log("Using generic greeting");
         }
         
         // Display welcome message and show buttons
-        console.log("Displaying welcome message");
+        console.log("Displaying welcome message:", welcomeMessage);
         displayResult(welcomeMessage);
-        console.log("Showing main menu");
+        console.log("Showing main menu with authority:", userAuthority);
         displayMainMenu();
         showButtons();
         
@@ -254,16 +265,13 @@ async function userByTelegramId(telegramId) {
             xhr.setRequestHeader('Content-Type', 'application/json');
             
             xhr.onload = function() {
+                console.log("RAW RESPONSE TEXT:", xhr.responseText);
+                
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    try {
-                        // Parse the response text
-                        const response = JSON.parse(xhr.responseText);
-                        console.log("User data received:", response);
-                        resolve(response);
-                    } catch (e) {
-                        console.error("Error parsing JSON:", e);
-                        resolve({ message: 'failed', error: 'JSON parse error' });
-                    }
+                    // Use our manual response processor instead of standard JSON.parse
+                    const processedResponse = manualProcessResponse(xhr.responseText);
+                    console.log("MANUALLY PROCESSED RESPONSE:", processedResponse);
+                    resolve(processedResponse);
                 } else {
                     console.error("HTTP error:", xhr.status);
                     resolve({ message: 'failed', error: xhr.statusText });
@@ -287,6 +295,70 @@ async function userByTelegramId(telegramId) {
     } catch (error) {
         console.error("Error in userByTelegramId:", error);
         return { message: 'failed', error: error.message };
+    }
+}
+
+// Manual response processor for when JSON.parse fails
+function manualProcessResponse(responseText) {
+    try {
+        // First try standard JSON.parse
+        return JSON.parse(responseText);
+    } catch (e) {
+        console.warn("Standard JSON parse failed, trying manual processing", e);
+        
+        try {
+            // If the response looks like the example you provided, manually extract values
+            if (responseText.includes("'message':") && responseText.includes("'f_name':") && 
+                responseText.includes("'l_name':") && responseText.includes("'authority':")) {
+                
+                console.log("Response looks like expected format, manually extracting");
+                
+                // Extract values using regex or string operations
+                // This is a simplified version - will need improvement based on actual response format
+                const extractValue = (key) => {
+                    const regex = new RegExp(`'${key}':\\s*'?([^',}]*)'?`);
+                    const match = responseText.match(regex);
+                    return match ? match[1] : null;
+                };
+                
+                const extractNumValue = (key) => {
+                    const regex = new RegExp(`'${key}':\\s*([0-9]+)`);
+                    const match = responseText.match(regex);
+                    return match ? Number(match[1]) : 0;
+                };
+                
+                // Build a synthetic response object
+                const result = {
+                    message: extractValue('message') || 'failed',
+                    f_name: extractValue('f_name') || '',
+                    l_name: extractValue('l_name') || '',
+                    authority: extractNumValue('authority'),
+                    // Add other fields as needed
+                    telegram_username: extractValue('telegram_username') || '',
+                    position: extractValue('position') || '',
+                    api_key: extractValue('api_key') || ''
+                };
+                
+                console.log("Manually extracted values:", result);
+                return result;
+            }
+            
+            // If response doesn't match expected format, try a last resort
+            // Replace single quotes with double quotes
+            const fixedJson = responseText.replace(/'/g, '"');
+            console.log("Trying with replaced quotes:", fixedJson);
+            return JSON.parse(fixedJson);
+        } catch (manualError) {
+            console.error("Manual processing also failed", manualError);
+            // Return a default object with failures
+            return { 
+                message: 'failed', 
+                error: 'JSON parsing failed',
+                f_name: '',
+                l_name: '',
+                authority: 0
+            };
+        }
     }
 }
 
@@ -461,10 +533,17 @@ function getMainMenuButtons(authority) {
     console.log("Getting menu buttons for authority level:", authority);
     let buttons = [];
     
-    // Convert authority to a number to ensure correct comparison
-    const authorityLevel = parseInt(authority);
-    console.log("Authority level (as number):", authorityLevel);
+    // Ensure authority is a number and log its type
+    const authorityLevel = Number(authority);
+    console.log("Authority level (as number):", authorityLevel, "type:", typeof authorityLevel);
     
+    // Log exact comparison results for debugging
+    console.log("Authority === 0:", authorityLevel === 0);
+    console.log("Authority === 4:", authorityLevel === 4);
+    console.log("Authority > 0:", authorityLevel > 0);
+    console.log("Authority < 4:", authorityLevel < 4);
+    
+    // Determine which set of buttons to show based on authority level
     if (authorityLevel === 0) {
         console.log("Using regular user menu");
         buttons = [
@@ -481,7 +560,7 @@ function getMainMenuButtons(authority) {
             { text: 'آخرین وضعیت بازارها', action: 'm4' }
         ];
     } else if (authorityLevel === 4) {
-        console.log("Using admin menu");
+        console.log("Using admin menu (authority 4)");
         buttons = [
             { text: 'مشاور سرمایه‌گذاری کاریزما', action: 'm5' },
             { text: 'اوراق بدهی', action: 'm1' },
@@ -489,9 +568,17 @@ function getMainMenuButtons(authority) {
             { text: 'آخرین وضعیت بازارها', action: 'm4' },
             { text: 'مدیریت کاربران', action: 'm7' }
         ];
+    } else {
+        // Fallback for any other authority value
+        console.log("Using fallback menu for unknown authority:", authorityLevel);
+        buttons = [
+            { text: 'اوراق بدهی', action: 'm1' },
+            { text: 'اوراق سهامی', action: 'm2' },
+            { text: 'آخرین وضعیت بازارها', action: 'm4' }
+        ];
     }
     
-    console.log("Returning buttons:", buttons);
+    console.log("Returning buttons:", buttons.map(b => b.text).join(", "));
     return buttons;
 }
 
