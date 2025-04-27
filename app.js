@@ -6,7 +6,8 @@ const resultDiv = document.getElementById('result');
 const menuButtonsContainer = document.getElementById('menuButtons');
 
 // API configuration
-const API_BASE_URL = "http://185.255.88.105:88";
+const USE_DIRECT_API = true; // Toggle this to test direct API access
+const API_BASE_URL = USE_DIRECT_API ? "http://185.255.88.105:88" : "https://amirmoharreri.cfd";
 const API_KEY = "fuglvrROvYI0sxieqrqnJmzL3n9ZL1P5";
 let userAuthority = 0;
 let navigation = "main_menu";
@@ -24,6 +25,9 @@ function callApi(endpoint, data) {
         // Set the correct Content-Type header - CRITICAL for the server's request.get_json()
         xhr.setRequestHeader('Content-Type', 'application/json');
         
+        // Add CORS headers
+        xhr.withCredentials = false; // Don't send cookies
+        
         // Track and display all information about the request and response
         let requestInfo = {
             url: `${API_BASE_URL}/${endpoint}`,
@@ -34,6 +38,9 @@ function callApi(endpoint, data) {
             data: data,
             jsonData: JSON.stringify(data)
         };
+        
+        console.log("Sending API request to:", requestInfo.url);
+        console.log("With data:", data);
         
         // Set up completion handler
         xhr.onload = function() {
@@ -206,7 +213,7 @@ async function startApp() {
         
         // Add view silently
         try {
-            await addView(user.id);
+        await addView(user.id);
         } catch (e) {
             console.warn("Error adding view (non-critical):", e);
         }
@@ -481,26 +488,26 @@ function displayMainMenu() {
         
         // Clear existing buttons in the menu container
         menuButtonsContainer.innerHTML = '';
-        
-        // Create menu buttons based on authority
-        const menuButtons = getMainMenuButtons(userAuthority);
-        
+    
+    // Create menu buttons based on authority
+    const menuButtons = getMainMenuButtons(userAuthority);
+    
         // Add buttons to the menu container
-        menuButtons.forEach(buttonInfo => {
-            const button = document.createElement('button');
-            button.className = 'button';
-            button.style.backgroundColor = "#D32127";
-            button.style.color = "white";
+    menuButtons.forEach(buttonInfo => {
+        const button = document.createElement('button');
+        button.className = 'button';
+        button.style.backgroundColor = "#D32127";
+        button.style.color = "white";
             button.style.display = 'block'; // Make sure it's visible
-            button.innerText = buttonInfo.text;
-            button.setAttribute('data-action', buttonInfo.action);
-            button.addEventListener('click', function() {
-                handleMenuAction(buttonInfo.action);
-            });
-            
+        button.innerText = buttonInfo.text;
+        button.setAttribute('data-action', buttonInfo.action);
+        button.addEventListener('click', function() {
+            handleMenuAction(buttonInfo.action);
+        });
+        
             // Add to the menu buttons container
             menuButtonsContainer.appendChild(button);
-        });
+    });
         
         console.log("Main menu displayed successfully");
     } catch (error) {
